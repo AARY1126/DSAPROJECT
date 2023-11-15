@@ -1,0 +1,193 @@
+#include <stdio.h>
+#include <string.h>
+typedef struct {
+    int day;
+    int month;
+    int year;
+} Date;
+
+typedef struct {
+    Date date;
+    char title[50];
+    char description[100];
+} Event;
+
+void displayDate(Date date) {
+    printf("%d-%d-%d", date.year, date.month, date.day);
+}
+
+void displayEvent(Event event) {
+    printf("Date: ");
+    displayDate(event.date);
+    printf("\nTitle: %s\nDescription: %s\n", event.title, event.description);
+}
+
+void addEvent(Event events[], int* numEvents) {
+    if (*numEvents >= 100) {
+        printf("Calendar is full. Cannot add more events.\n");
+        return;
+    }
+    printf("Enter event date (YYYY MM DD): ");
+    scanf("%d %d %d", &events[*numEvents].date.year, &events[*numEvents].date.month, &events[*numEvents].date.day);
+    printf("Enter event title: ");
+    scanf(" %[^\n]", events[*numEvents].title); 
+    printf("Enter event description: ");
+    scanf(" %[^\n]", events[*numEvents].description); 
+    (*numEvents)++;
+    sortEvents(events, *numEvents); 
+    printf("Event added successfully!\n");
+}
+
+void viewEventsOnDate(Event events[], int numEvents, Date date) {
+    int eventFound = 0;
+    printf("Events on ");
+    displayDate(date);
+    printf(":\n");
+
+    for (int i = 0; i < numEvents; i++) {
+        if (events[i].date.year == date.year && events[i].date.month == date.month && events[i].date.day == date.day) {
+            displayEvent(events[i]);
+            eventFound = 1;
+        }
+    }
+    
+    if (!eventFound) {
+        printf("No events found for this date.\n");
+    }
+}
+void deleteEvent(Event events[], int* numEvents, Date date) {
+    int eventDeleted = 0;
+    for (int i = 0; i < *numEvents; i++) {
+        if (events[i].date.year == date.year && events[i].date.month == date.month && events[i].date.day == date.day) {
+            for (int j = i; j < *numEvents - 1; j++) {
+                events[j] = events[j + 1];
+            }
+            (*numEvents)--;
+            eventDeleted = 1;
+            sortEvents(events, *numEvents);
+            printf("Event(s) on ");
+            displayDate(date);
+            printf(" deleted successfully\n");
+            break;
+        }
+    }
+    
+    if (!eventDeleted) {
+        printf("No events found for this date to delete\n");
+    }
+}
+
+void modifyEvent(Event events[], int numEvents, Date date) {
+    int eventModified = 0;
+    for (int i = 0; i < numEvents; i++) {
+        if (events[i].date.year == date.year && events[i].date.month == date.month && events[i].date.day == date.day) {
+            printf("Enter new event date (YYYY MM DD): ");
+            scanf("%d %d %d", &events[i].date.year, &events[i].date.month, &events[i].date.day);
+            
+            printf("Enter new event title: ");
+            scanf(" %[^\n]", events[i].title);
+            
+            printf("Enter new event description: ");
+            scanf(" %[^\n]", events[i].description);
+            
+            eventModified = 1;
+            sortEvents(events, numEvents); 
+            printf("Event on ");
+            displayDate(date);
+            printf(" modified successfully\n");
+            break;
+        }
+    }
+    
+    if (!eventModified) {
+        printf("No events found for this date to modify\n");
+    }
+}
+
+void viewEventsInMonth(Event events[], int numEvents, Date date) {
+    printf("Events in %d-%d:\n", date.year, date.month);
+    int eventFound = 0;
+
+    for (int i = 0; i < numEvents; i++) {
+        if (events[i].date.year == date.year && events[i].date.month == date.month) {
+            displayEvent(events[i]);
+            eventFound = 1;
+        }
+    }
+    
+    if (!eventFound) {
+        printf("No events found for this month\n");
+    }
+}
+void sortEvents(Event events[], int numEvents) {
+    for (int i = 0; i < numEvents - 1; i++) {
+        for (int j = 0; j < numEvents - i - 1; j++) {
+            if (events[j].date.year > events[j + 1].date.year ||
+                (events[j].date.year == events[j + 1].date.year &&
+                 events[j].date.month > events[j + 1].date.month) ||
+                (events[j].date.year == events[j + 1].date.year &&
+                 events[j].date.month == events[j + 1].date.month &&
+                 events[j].date.day > events[j + 1].date.day)) {
+                Event temp = events[j];
+                events[j] = events[j + 1];
+                events[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    Event events[100]; 
+    int numEvents = 0;
+
+    int choice;
+    do{
+        printf("\n1. Add Event\n2. View Events on a Date\n3. Delete Event on a Date\n4. Modify Event on a Date\n5. View All Events\n6. View Events in a Month\n7. Delete All Events\n8. Exit\nEnter your choice: ");
+        scanf("%d",&choice);
+        Date date;
+        Date monthToView;
+
+        switch (choice) {
+            case 1:
+                addEvent(events, &numEvents);
+                break;
+            case 2:
+                printf("Enter date to view events (YYYY MM DD): ");
+                scanf("%d %d %d", &date.year, &date.month, &date.day);
+                viewEventsOnDate(events, numEvents, date);
+                break;
+            case 3:
+                printf("Enter date to delete event (YYYY MM DD): ");
+                scanf("%d %d %d", &date.year, &date.month, &date.day);
+                deleteEvent(events, &numEvents, date);
+                break;
+            case 4:
+                printf("Enter date to modify event (YYYY MM DD): ");
+                scanf("%d %d %d", &date.year, &date.month, &date.day);
+                modifyEvent(events, numEvents, date);
+                break;
+            case 5:
+                printf("All Events:\n");
+                for (int i = 0; i < numEvents; i++) {
+                    displayEvent(events[i]);
+                }
+                break;
+            case 6:
+                printf("Enter month to view events (YYYY MM): ");
+                scanf("%d %d", &monthToView.year, &monthToView.month);
+                viewEventsInMonth(events, numEvents, monthToView);
+                break;
+            case 7:
+                numEvents = 0;
+                printf("All events deleted.\n");
+                break;
+            case 8:
+                printf("Exiting. Goodbye!\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != 8);
+
+    return 0;
+}
